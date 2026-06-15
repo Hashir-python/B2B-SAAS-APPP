@@ -45,7 +45,7 @@ async def get_current_user(request: Request) -> AuthUser:
         AuthenticateRequestOptions(authorized_parties=[settings.FRONTEND_URL])
     )
     if not request_state.is_authenticated:
-        raise HttpException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     claims=request_state.payload
     user_id=claims.get("sub")
     org_id=claims.get("org_id")
@@ -65,19 +65,19 @@ def require_view(user: AuthUser = Depends(get_current_user)) -> AuthUser:
                             detail="View permission required")
     return user
 
-def create(user: AuthUser = Depends(get_current_user)) -> AuthUser:
+def require_create(user: AuthUser = Depends(get_current_user)) -> AuthUser:
     if not user.can_create:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                             detail="Create permission required")
     return user
 
-def delete(user: AuthUser = Depends(get_current_user)) -> AuthUser:
+def require_delete(user: AuthUser = Depends(get_current_user)) -> AuthUser:
     if not user.can_delete:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                             detail="Delete permission required")
     return user
 
-def edit(user: AuthUser = Depends(get_current_user)) -> AuthUser:
+def require_edit(user: AuthUser = Depends(get_current_user)) -> AuthUser:
     if not user.can_edit:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                             detail="Edit permission required")

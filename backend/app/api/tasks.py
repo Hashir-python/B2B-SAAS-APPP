@@ -1,26 +1,29 @@
-from fastapi import APIRouter, Depends,http_exceptions, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.database import get_db
+from app.core.database import get_db
 from typing import List
-from app.core.auth import get_current_user, require_view,require_create,require_edit,require_delete,AuthUser
+from app.core.auth import get_current_user, require_view, require_create, require_edit, require_delete, AuthUser
 from app.models.task import Task
 from app.schemas.task import CreateTask, UpdateTask, TaskResponse, TaskStatusUpdate
 
 app = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
-@app.get("/",response_model=List[TaskResponse])
-def list_tasks(user:AuthUser=Depends(require_view) ,db: Session = Depends(get_db)):
-    tasks=db.query(Task).filter(Task.org_id==user.org_id).all()
+@app.get("/", response_model=List[TaskResponse])
+def list_tasks(
+    user: AuthUser = Depends(require_view),
+    db: Session = Depends(get_db)
+):
+    tasks = db.query(Task).filter(Task.org_id == user.org_id).all()
     return tasks
 
 
-@app.post("/",response_model=TaskResponse)
-def list_tasks(
-    task_date: CreateTask,
-    user:AuthUser=Depends(require_create) ,
+@app.post("/", response_model=TaskResponse)
+def create_task(
+    task_data: CreateTask,
+    user: AuthUser = Depends(require_create),
     db: Session = Depends(get_db)
 ):
-    task=Task(
+    task = Task(
         title=task_data.title,
         description=task_data.description,
         status=task_data.status,
@@ -32,44 +35,76 @@ def list_tasks(
     db.refresh(task)
     return task
 
-@app.get("/{task_id}",response_model=TaskResponse)
-def get_task(task_id:str,
-             user:AuthUser=Depends(require_view) ,
-             db: Session = Depends(get_db)):
-    task=db.query(Task).filter(Task.id==task_id,Task.org_id==user.org_id).first()
+
+@app.get("/{task_id}", response_model=TaskResponse)
+def get_task(
+    task_id: str,
+    user: AuthUser = Depends(require_view),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.org_id == user.org_id
+    ).first()
+
     if not task:
-        raise http_exceptions.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
+
     return task
 
-@app.put("/{task_id}",response_model=TaskResponse)
-def update_task(task_id:str,
-                task_data: UpdateTask,
-                user:AuthUser=Depends(require_edit) ,
-                db: Session = Depends(get_db)):
-    task=db.query(Task).filter(Task.id==task_id,Task.org_id==user.org_id).first()
+
+@app.put("/{task_id}", response_model=TaskResponse)
+def update_task(
+    task_id: str,
+    task_data: UpdateTask,
+    user: AuthUser = Depends(require_edit),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.org_id == user.org_id
+    ).first()
+
     if not task:
-        raise http_exceptions.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
+
     if task_data.title is not None:
-        task.title=task_data.title
+        task.title = task_data.title
+
     if task_data.description is not None:
-        task.description=task_data.description
+        task.description = task_data.description
+
     if task_data.status is not None:
-        task.status=task_data.status    
+        task.status = task_data.status
 
     db.commit()
     db.refresh(task)
     return task
 
 
-@app.delete("/{task_id}",staatus_code=status.HTTP_204_NO_CONTENT)
-def delete_task(task_id:str,
-                user:AuthUser=Depends(require_delete) ,
-                db: Session = Depends(get_db)):
-    task=db.query(Task).filter(Task.id==task_id,Task.org_id==user.org_id).first()
+@app.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(
+    task_id: str,
+    user: AuthUser = Depends(require_delete),
+    db: Session = Depends(get_db)
+):
+    task = db.query(Task).filter(
+        Task.id == task_id,
+        Task.org_id == user.org_id
+    ).first()
 
     if not task:
-        raise http_exceptions.HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
+
     db.delete(task)
     db.commit()
     return None
