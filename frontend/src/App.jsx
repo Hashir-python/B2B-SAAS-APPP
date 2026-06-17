@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
-
+import Layout from './components/layout'
 import HomePage from './pages/HomePage'
 import SignInPage from './pages/SignInPage'
 import SignUpPage from './pages/SignUpPage'
@@ -21,19 +21,21 @@ function ProtectedRoute({ children }) {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/sign-in" element={<SignInPage />} />
-      <Route path="/sign-up" element={<SignUpPage />} />
-      <Route path="/pricing" element={<PricingPage />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+    <Route path="/" element={<Layout />}>
+    <Route index element={<HomePage />} />
+    <Route path={"sign-in/*"} element={<SignInPage />} />
+    <Route path={"sign-up/*"} element={<SignUpPage />} />
+    <Route path={"pricing/*"}element={<PricingPage />} />
+    <Route
+      path="dashboard"
+      element={
+        <ProtectedRoute>
+          <DashboardPage />
+        </ProtectedRoute>
+      }
+    />
+    </Route>
+   </Routes>
   )
 }
 
